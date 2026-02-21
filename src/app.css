@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--color-cream: theme('colors.cream.100');
+	--color-forest: theme('colors.forest.500');
+	--color-velvet: theme('colors.velvet.500');
+	--color-ink: theme('colors.ink.800');
+}
+
+body {
+	@apply bg-cream-200 text-ink-800 antialiased;
+	font-family: 'Outfit', system-ui, sans-serif;
+}
+
+/* Smooth transitions for interactive elements */
+button:not(:disabled):hover,
+a:hover {
+	@apply transition-colors duration-200;
+}
