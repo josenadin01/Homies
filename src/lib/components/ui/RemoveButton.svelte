@@ -9,7 +9,7 @@
 <button
 	class="text-ink-400 hover:text-forest-500 text-sm transition-opacity {inline
 		? 'opacity-0 group-hover:opacity-100'
-		: 'absolute right-0 top-3 opacity-0 group-hover:opacity-100 z-10'} {className}"
+		: 'absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 z-10'} {className}"
 	on:click={(e) => onRemove(e)}
 	aria-label={label}
 >

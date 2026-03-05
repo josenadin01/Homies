@@ -4,8 +4,8 @@
 	export let showLabel = true;
 	export let variant: 'default' | 'warning' | 'danger' = 'default';
 
-	const percent = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-	const percentRounded = Math.round(percent);
+	$: percent = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+	$: percentRounded = Math.round(percent);
 	const variants = {
 		default: 'bg-forest-500',
 		warning: 'bg-velvet-500',

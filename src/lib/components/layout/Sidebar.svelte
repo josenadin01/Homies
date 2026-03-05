@@ -1,5 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+	import { supabase } from '$lib/supabase';
+
+	async function logout() {
+		await supabase.auth.signOut();
+		goto('/login');
+	}
 
 	const navItems = [
 		{ href: '/', label: 'Início', icon: '🏠' },
@@ -30,4 +37,13 @@
 			</a>
 		{/each}
 	</nav>
+	<div class="px-3 pb-6">
+		<button
+			on:click={logout}
+			class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-ink-500 hover:bg-cream-300 hover:text-ink-700 transition-colors text-sm"
+		>
+			<span class="text-lg">🚪</span>
+			<span>Sair</span>
+		</button>
+	</div>
 </aside>

@@ -1,30 +1,71 @@
 import { writable } from 'svelte/store';
 import type { Reminder } from '$lib/types';
+import { supabase } from '$lib/supabase';
 
-const mockReminders: Reminder[] = [
-	{ id: '1', text: 'Pagar IPTU', date: '2025-02-25', profileId: '1', completed: false },
-	{ id: '2', text: 'Trocar lâmpada da cozinha', date: '2025-02-22', profileId: '2', completed: false },
-	{ id: '3', text: 'Renovar documento', date: '2025-02-28', profileId: '1', completed: true }
-];
+export const remindersStore = writable<Reminder[]>([]);
+export const remindersLoading = writable(false);
 
-export const remindersStore = writable<Reminder[]>(mockReminders);
+export async function initReminders() {
+	remindersLoading.set(true);
 
-export function addReminder(reminder: Omit<Reminder, 'id'>) {
-	remindersStore.update((reminders) => [
-		...reminders,
-		{
-			...reminder,
-			id: crypto.randomUUID()
-		}
-	]);
+	const { data, error } = await supabase
+		.from('reminders')
+		.select('*')
+		.order('date', { ascending: true });
+
+	if (!error && data) {
+		remindersStore.set(
+			data.map((r) => ({
+				id: r.id,
+				text: r.text,
+				date: r.date,
+				profileId: r.profile_id,
+				completed: r.completed
+			}))
+		);
+	}
+
+	remindersLoading.set(false);
 }
 
-export function toggleReminderCompleted(id: string) {
-	remindersStore.update((reminders) =>
-		reminders.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r))
-	);
+export async function addReminder(reminder: Omit<Reminder, 'id'>) {
+	const { data, error } = await supabase
+		.from('reminders')
+		.insert({
+			text: reminder.text,
+			date: reminder.date,
+			profile_id: reminder.profileId,
+			completed: reminder.completed
+		})
+		.select()
+		.single();
+
+	if (!error && data) {
+		remindersStore.update((reminders) => [
+			...reminders,
+			{ id: data.id, text: data.text, date: data.date, profileId: data.profile_id, completed: data.completed }
+		]);
+	}
 }
 
-export function removeReminder(id: string) {
-	remindersStore.update((reminders) => reminders.filter((r) => r.id !== id));
+export async function toggleReminderCompleted(id: string) {
+	let currentCompleted = false;
+	remindersStore.update((reminders) => {
+		return reminders.map((r) => {
+			if (r.id === id) {
+				currentCompleted = !r.completed;
+				return { ...r, completed: currentCompleted };
+			}
+			return r;
+		});
+	});
+
+	await supabase.from('reminders').update({ completed: currentCompleted }).eq('id', id);
+}
+
+export async function removeReminder(id: string) {
+	const { error } = await supabase.from('reminders').delete().eq('id', id);
+	if (!error) {
+		remindersStore.update((reminders) => reminders.filter((r) => r.id !== id));
+	}
 }

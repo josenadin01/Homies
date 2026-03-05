@@ -8,9 +8,14 @@
 	import RemoveButton from '$lib/components/ui/RemoveButton.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import BillCard from '$lib/components/features/BillCard.svelte';
+	import Pagination from '$lib/components/ui/Pagination.svelte';
 	import { formatCurrency, parseAmount } from '$lib/utils/format';
 
+	const PAGE_SIZE = 5;
+
 	let showForm = false;
+	let hoveredIndex: number | null = null;
+	let currentPage = 1;
 	let newDescription = '';
 	let newAmount = '';
 	let newDueDate = new Date().toISOString().slice(0, 10);
@@ -21,6 +26,9 @@
 	$: sortedBills = [...$billsStore].sort(
 		(a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
 	);
+	$: totalPages = Math.ceil(sortedBills.length / PAGE_SIZE);
+	$: currentPage = Math.min(currentPage, totalPages || 1);
+	$: pageBills = sortedBills.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
 	function handleAdd() {
 		const amount = parseAmount(newAmount);
@@ -35,6 +43,7 @@
 		newDescription = '';
 		newAmount = '';
 		showForm = false;
+		currentPage = 1;
 	}
 </script>
 
@@ -90,10 +99,14 @@
 		{#if $billsStore.length === 0}
 			<EmptyState>Nenhuma conta cadastrada.</EmptyState>
 		{:else}
-			<div class="divide-y divide-cream-400">
-				{#each sortedBills as bill}
+			<div>
+				{#each pageBills as bill, i}
 					{@const profile = $profiles.find((p) => p.id === bill.profileId)}
-					<div class="group relative pr-20">
+					<div
+						class="group relative pr-20 px-2 hover:rounded-xl hover:bg-cream-200 transition-colors {i > 0 && hoveredIndex !== i && hoveredIndex !== i - 1 ? 'border-t border-cream-400' : ''}"
+						on:mouseenter={() => (hoveredIndex = i)}
+						on:mouseleave={() => (hoveredIndex = null)}
+					>
 						<button
 							class="w-full text-left"
 							on:click={() => toggleBillPaid(bill.id)}
@@ -112,6 +125,7 @@
 					</div>
 				{/each}
 			</div>
+			<Pagination {currentPage} {totalPages} onPageChange={(p) => (currentPage = p)} />
 		{/if}
 	</Card>
 </div>

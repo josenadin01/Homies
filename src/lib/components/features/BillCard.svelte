@@ -9,16 +9,16 @@
 	export let profile: Profile | undefined;
 </script>
 
-<div class="flex items-center justify-between py-3 border-b border-cream-400 last:border-0">
-	<div class="flex items-center gap-3">
+<div class="flex items-center gap-3 py-3">
+	<div class="flex-none w-20">
 		<PersonBadge {profile} />
-		<div>
-			<p class="font-medium text-ink-800">{bill.description}</p>
-			<p class="text-sm text-ink-500">Vencimento: {formatDate(bill.dueDate)}</p>
-		</div>
 	</div>
-	<div class="flex items-center gap-3">
-		<span class="font-semibold text-ink-800">{formatCurrency(bill.amount)}</span>
+	<div class="flex-1 min-w-0">
+		<p class="font-medium text-ink-800 truncate">{bill.description}</p>
+		<p class="text-sm text-ink-500">Venc. {formatDate(bill.dueDate)}</p>
+	</div>
+	<span class="flex-none w-24 font-semibold text-ink-800">{formatCurrency(bill.amount)}</span>
+	<div class="flex-none w-24 flex justify-center">
 		{#if bill.paid}
 			<Badge variant="success">Pago</Badge>
 		{:else}

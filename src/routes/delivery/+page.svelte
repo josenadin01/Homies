@@ -8,8 +8,11 @@
 	import RemoveButton from '$lib/components/ui/RemoveButton.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
+	import Pagination from '$lib/components/ui/Pagination.svelte';
 	import PersonBadge from '$lib/components/features/PersonBadge.svelte';
 	import { formatCurrency, formatShortDate, parseAmount } from '$lib/utils/format';
+
+	const PAGE_SIZE = 5;
 
 	let showForm = false;
 	let newAmount = '';
@@ -18,10 +21,15 @@
 	let newNote = '';
 	let editLimit = false;
 	let tempLimit = $deliveryStore.monthlyLimit.toString();
+	let currentPage = 1;
 
 	$: totalSpent = $deliveryStore.orders.reduce((sum, o) => sum + o.amount, 0);
 	$: limit = $deliveryStore.monthlyLimit;
 	$: variant = totalSpent >= limit ? 'danger' : totalSpent >= limit * 0.8 ? 'warning' : 'default';
+	$: allOrders = $deliveryStore.orders.slice().reverse();
+	$: totalPages = Math.ceil(allOrders.length / PAGE_SIZE);
+	$: currentPage = Math.min(currentPage, totalPages || 1);
+	$: pageOrders = allOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
 	function handleAdd() {
 		const amount = parseAmount(newAmount);
@@ -35,6 +43,7 @@
 		newAmount = '';
 		newNote = '';
 		showForm = false;
+		currentPage = 1;
 	}
 
 	function handleSetLimit() {
@@ -56,11 +65,7 @@
 					<h2 class="text-lg font-semibold text-ink-800">Limite mensal</h2>
 					{#if editLimit}
 						<div class="flex gap-2 mt-2">
-							<Input
-								type="number"
-								bind:value={tempLimit}
-								placeholder="300"
-							/>
+							<Input type="number" bind:value={tempLimit} placeholder="300" />
 							<Button variant="primary" size="sm" on:click={handleSetLimit}>Ok</Button>
 							<Button variant="ghost" size="sm" on:click={() => (editLimit = false)}>Cancelar</Button>
 						</div>
@@ -68,10 +73,7 @@
 						<button
 							type="button"
 							class="text-forest-500 font-medium cursor-pointer hover:underline mt-1 text-left bg-transparent border-none p-0"
-							on:click={() => {
-								editLimit = true;
-								tempLimit = limit.toString();
-							}}
+							on:click={() => { editLimit = true; tempLimit = limit.toString(); }}
 						>
 							{formatCurrency(limit)} (editar)
 						</button>
@@ -92,39 +94,22 @@
 
 	{#if showForm}
 		<Card padding="md" class="mb-6">
-			<form
-				on:submit|preventDefault={handleAdd}
-				class="space-y-3"
-			>
-				<Input
-					label="Valor (R$)"
-					type="text"
-					placeholder="45,90"
-					bind:value={newAmount}
-				/>
+			<form on:submit|preventDefault={handleAdd} class="space-y-3">
+				<Input label="Valor (R$)" type="text" placeholder="45,90" bind:value={newAmount} />
 				<Input label="Data" type="date" bind:value={newDate} />
-				<ProfileSelect
-					label="Quem pediu"
-					id="delivery-profile"
-					bind:value={newProfileId}
-				/>
-				<Input
-					label="Observação (opcional)"
-					type="text"
-					placeholder="iFood, Rappi..."
-					bind:value={newNote}
-				/>
+				<ProfileSelect label="Quem pediu" id="delivery-profile" bind:value={newProfileId} />
+				<Input label="Observação (opcional)" type="text" placeholder="iFood, Rappi..." bind:value={newNote} />
 				<Button type="submit" variant="primary">Adicionar</Button>
 			</form>
 		</Card>
 	{/if}
 
 	<Card padding="md">
-		{#if $deliveryStore.orders.length === 0}
+		{#if allOrders.length === 0}
 			<EmptyState>Nenhum pedido registrado ainda.</EmptyState>
 		{:else}
 			<ul class="divide-y divide-cream-400">
-				{#each $deliveryStore.orders.slice().reverse() as order}
+				{#each pageOrders as order}
 					{@const profile = $profiles.find((p) => p.id === order.profileId)}
 					<li class="flex items-center justify-between py-3 group pr-16">
 						<div class="flex items-center gap-3">
@@ -147,6 +132,7 @@
 					</li>
 				{/each}
 			</ul>
+			<Pagination {currentPage} {totalPages} onPageChange={(p) => (currentPage = p)} />
 		{/if}
 	</Card>
 </div>

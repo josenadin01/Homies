@@ -23,6 +23,7 @@
 	{type}
 	{disabled}
 	class="{base} {variants[variant]} {sizes[size]} {className}"
+	on:click
 >
 	<slot />
 </button>
