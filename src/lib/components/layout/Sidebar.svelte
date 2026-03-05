@@ -37,7 +37,14 @@
 			</a>
 		{/each}
 	</nav>
-	<div class="px-3 pb-6">
+	<div class="px-3 pb-6 space-y-1">
+		<a
+			href="/perfil"
+			class="flex items-center gap-3 px-4 py-3 rounded-xl text-ink-500 hover:bg-cream-300 hover:text-ink-700 transition-colors text-sm"
+		>
+			<span class="text-lg">⚙️</span>
+			<span>Perfil</span>
+		</a>
 		<button
 			on:click={logout}
 			class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-ink-500 hover:bg-cream-300 hover:text-ink-700 transition-colors text-sm"
